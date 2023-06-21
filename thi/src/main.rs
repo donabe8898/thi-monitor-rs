@@ -1,7 +1,6 @@
 #![no_main]
 #![no_std]
 
-use core::fmt::Error;
 
 use arduino_hal::{prelude::*, i2c::Direction};
 use panic_halt as _;
@@ -39,31 +38,37 @@ fn main() -> ! {
         pins.a5.into_pull_up_input(),
         50000,
     );
+    let mut check = [0x71u8];
     let mut dat = [0x00u8, 0x00u8, 0x00u8, 0x00u8, 0x00u8, 0x00u8, 0x00u8];
     let mut trigger = [0xACu8, 0x33u8, 0x00u8];
 
-    ufmt::uwriteln!(&mut serial, "Write direction test:\r").void_unwrap();
-    i2c.i2cdetect(&mut serial, arduino_hal::i2c::Direction::Write);
-    ufmt::uwriteln!(&mut serial, "\r\nRead direction test\r").void_unwrap();
-    i2c.i2cdetect(&mut serial, arduino_hal::i2c::Direction::Read);
+    // ufmt::uwriteln!(&mut serial, "Write direction test:\r").void_unwrap();
+    // i2c.i2cdetect(&mut serial, arduino_hal::i2c::Direction::Write);
+    // ufmt::uwriteln!(&mut serial, "\r\nRead direction test\r").void_unwrap();
+    // i2c.i2cdetect(&mut serial, arduino_hal::i2c::Direction::Read);
     let mut led = pins.d13.into_output();
 
+    // 初期チェック
+    arduino_hal::delay_ms(100);
+    let ret = i2c.read(0x38,&mut check);
 
     loop {
         arduino_hal::delay_ms(100);
-        i2c.write(0x38u8,&mut trigger);
+        let result = i2c.write(0x38u8,&mut trigger);
+        ufmt::uwriteln!(&mut serial, "{:?}", result);
 
         arduino_hal::delay_ms(80);
-        i2c.read(0x38,&mut dat);
+        let result = i2c.read(0x38,&mut dat);
+        ufmt::uwriteln!(&mut serial, "{:?}", result);
 
         let hum: u32 = (dat[1] as u32) << 12 | (dat[2] as u32) << 4 | (((dat[3] as u32) & 0xF0) >> 4);
         let tmp: u32 =  ((dat[3] as u32 & 0x0F) << 16) | (dat[4] as u32 )<< 8 | (dat[5] as u32);
 
         let calced_hum = hum as u32 / 1048576 * 100;
         let calced_tmp = tmp as u32 / 1048576 * 200-50;
-
-        ufmt::uwriteln!(&mut serial,"{}",calced_tmp).void_unwrap();
-        arduino_hal::delay_ms(1000);
+        ufmt::uwriteln!(&mut serial, "{}", calced_hum);
+        ufmt::uwriteln!(&mut serial,"{}",calced_tmp);
+        arduino_hal::delay_ms(100);
     }
 }
 
