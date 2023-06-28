@@ -1,8 +1,7 @@
 #![no_main]
 #![no_std]
 
-
-use arduino_hal::{prelude::*, i2c::Direction};
+use arduino_hal::{i2c::Direction, prelude::*};
 use panic_halt as _;
 
 // use i2c sensor address
@@ -50,25 +49,44 @@ fn main() -> ! {
 
     // 初期チェック
     arduino_hal::delay_ms(100);
-    let ret = i2c.read(0x38,&mut check);
+    let ret: Result<(), arduino_hal::i2c::Error> = i2c.read(0x38, &mut check);
 
     loop {
         arduino_hal::delay_ms(100);
-        let result = i2c.write(0x38u8,&mut trigger);
+        let result: Result<(), arduino_hal::i2c::Error> = i2c.write(0x38u8, &mut trigger);
         ufmt::uwriteln!(&mut serial, "{:?}", result);
 
-        arduino_hal::delay_ms(80);
-        let result = i2c.read(0x38,&mut dat);
+        arduino_hal::delay_ms(800);
+        let result: Result<(), arduino_hal::i2c::Error> = i2c.read(0x38, &mut dat);
         ufmt::uwriteln!(&mut serial, "{:?}", result);
 
-        let hum: u32 = (dat[1] as u32) << 12 | (dat[2] as u32) << 4 | (((dat[3] as u32) & 0xF0) >> 4);
-        let tmp: u32 =  ((dat[3] as u32 & 0x0F) << 16) | (dat[4] as u32 )<< 8 | (dat[5] as u32);
+        let hum: u32 =
+            ((dat[1] as u32) << 12 | (dat[2] as u32) << 4 | ((dat[3] as u32 & 0xF0) >> 4)).into();
+        let tmp: u32 =
+            (((dat[3] as u32 & 0x0F) << 16) | (dat[4] as u32) << 8u8 | dat[5] as u32).into();
 
-        let calced_hum = hum as u32 / 1048576 * 100;
-        let calced_tmp = tmp as u32 / 1048576 * 200-50;
-        ufmt::uwriteln!(&mut serial, "{}", calced_hum);
-        ufmt::uwriteln!(&mut serial,"{}",calced_tmp);
+        // ufmt::uwriteln!(&mut serial, "{:?}", hum);
+        // ufmt::uwriteln!(&mut serial, "{:?}", tmp);
+
+        // 温度と湿度に変換
+        let calced_hum: f64 = (hum as f64 / 1048576.0) * 100.0;
+        let calced_tmp: f64 = (tmp as f64 / 104857.0) * 200.0 - 50.0;
+
+        // error
+        ufmt::uwriteln!(&mut serial, "{:?}", flip(calced_hum));
+        ufmt::uwriteln!(&mut serial, "{:?}", flip(calced_tmp));
+
+        // ufmt::uwriteln!(&mut serial, "{}", calced_hum);
+        // ufmt::uwriteln!(&mut serial, "{}", calced_tmp);
         arduino_hal::delay_ms(100);
     }
 }
 
+fn flip(x: f64) -> u64 {
+    let y: u64 = x.to_bits();
+    return y ^ ((-((y >> 63) as i64) as u64 | 0x8000000000000000_u64) as u64);
+}
+// 695744
+// 375908
+
+// 2^20=1048576
