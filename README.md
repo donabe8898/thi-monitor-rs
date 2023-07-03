@@ -23,8 +23,9 @@ Rustで作る温湿度LEDモニター
 - ArchLinux 6.3.9-arch1-1 x86_64
 
 ### Build test
-|:-------:|:-----:|:---------:|
+
 | Windows | macOS | GNU/Linux |
+|:-------:|:-----:|:---------:|
 |  None   | None  |  __OK!__  |
 
 - issue求む
