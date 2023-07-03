@@ -4,12 +4,6 @@ Temperature humidity index monitor to LED
 
 Rustで作る温湿度LEDモニター
 
-## Used package
-
-- avr-gcc
-- avr-libc
-- avrdude
-
 
 ## Hardware Environment
 
