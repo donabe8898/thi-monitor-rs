@@ -5,6 +5,9 @@ Temperature humidity index monitor to LED
 Rustで作る温湿度LEDモニター
 
 
+
+
+
 ## Hardware Environment
 
 - Arduino UNO R3
@@ -56,9 +59,11 @@ cargo run --release
 
 ## Future
 - [x] 温度と湿度を取得してシリアルコンソールに表示
-- [ ] LEDのテスト
-- [ ] 不快指数を計算してLEDで表現
-- [ ] 申し訳程度の抽象化
+- [x] LEDのテスト
+- [x] 不快指数を計算してLEDで表現
+- [x] 申し訳程度の抽象化
+- [ ] システム図をここへ置く
+- [ ] Windows,macOSでのビルドテスト(個人的にやる気が全く起きないので誰か...)
 
 ## License
 `MIT License`と`Apache License v2.0`とのデュアルライセンスです。
