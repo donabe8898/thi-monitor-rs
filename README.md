@@ -5,7 +5,7 @@ Temperature humidity index monitor to LED
 Rustで作る温湿度LEDモニター
 
 
-
+![使ってね!](picture/02Arduino.gif)
 
 
 ## Hardware Environment
