@@ -62,6 +62,8 @@ cargo run --release
 - [ ] LEDのテスト
 - [ ] 不快指数を計算してLEDで表現
 - [ ] 申し訳程度の抽象化
+- [ ] システム図を載せる
+- [ ] Windows, macOSでのビルドテスト(やる気スイッチが入らないので誰か..)
 
 ## License
 `MIT License`と`Apache License v2.0`とのデュアルライセンスです。
