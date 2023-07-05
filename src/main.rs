@@ -55,9 +55,9 @@ fn main() -> ! {
     // 初期チェック
     arduino_hal::delay_ms(100);
     let _ret: Result<(), arduino_hal::i2c::Error> = i2c.read(0x38, &mut check);
-    red_led.set_high();
-    ble_led.set_high();
-    grn_led.set_high();
+    red_led.set_low();
+    ble_led.set_low();
+    grn_led.set_low();
     loop {
         // データ書き込み
         arduino_hal::delay_ms(100);
@@ -78,22 +78,111 @@ fn main() -> ! {
         let calced_hum = (hum as f32 / 1048576.0) * 100.0;
         // 不快指数計算
         let calced_thi = 0.81 * calced_tmp + 0.01 * calced_hum * (0.99 * calced_tmp - 14.3) + 46.3;
-
+        let calced_thi = calced_thi as u32;
         // フォーマット
         let fmted_tmp = uFmt_f32::Zero(calced_tmp);
         let fmted_hum = uFmt_f32::Zero(calced_hum);
-        let fmted_thi = uFmt_f32::Zero(calced_thi);
+        // let fmted_thi = uFmt_f32::Zero(calced_thi);
 
         // 一旦表示
         uwriteln!(&mut serial, "===================").void_unwrap();
         uwriteln!(&mut serial, "室温 {}℃", fmted_tmp).void_unwrap();
         uwriteln!(&mut serial, "湿度 {}%", fmted_hum).void_unwrap();
-        uwriteln!(&mut serial, "不快指数 {}", fmted_thi).void_unwrap();
+        uwriteln!(&mut serial, "不快指数 {}", calced_thi).void_unwrap();
         uwriteln!(&mut serial, "===================").void_unwrap();
 
-        arduino_hal::delay_ms(50);
-        red_led.toggle();
-        ble_led.toggle();
+        // ~50 青点滅
+        // 50~55 青点灯
+        // 55~60 水色
+        // 60~65 白
+        // 65~70 緑 快適
+        // 70~75 黄色
+        // 75~80 オレンジ
+        // 80~85　赤
+        // 85~ 赤点滅
+
+        match calced_thi {
+            0...49 => {
+                if red_led.is_set_high() {
+                    red_led.set_low();
+                }
+                if grn_led.is_set_high() {
+                    grn_led.set_low();
+                }
+                ble_led.toggle();
+            }
+            50...54 => {
+                if red_led.is_set_high() {
+                    red_led.set_low();
+                }
+                if grn_led.is_set_high() {
+                    grn_led.set_low();
+                }
+                ble_led.set_high();
+            }
+            55...59 => {
+                if red_led.is_set_high() {
+                    red_led.set_low();
+                }
+                grn_led.set_high();
+                ble_led.set_high();
+            }
+            60...64 => {
+                red_led.set_high();
+                grn_led.set_high();
+                ble_led.set_high();
+            }
+            65...69 => {
+                if red_led.is_set_high() {
+                    red_led.set_low();
+                }
+                if ble_led.is_set_high() {
+                    ble_led.set_low();
+                }
+                grn_led.set_high();
+            }
+            70...74 => {
+                if red_led.is_set_high() != grn_led.is_set_high() {
+                    red_led.set_high();
+                    grn_led.set_high();
+                }
+                if ble_led.is_set_high() {
+                    ble_led.set_low();
+                }
+                red_led.set_high();
+                grn_led.set_high();
+            }
+            75...79 => {
+                if red_led.is_set_high() != grn_led.is_set_high() {
+                    red_led.set_high();
+                    grn_led.set_high();
+                }
+                if ble_led.is_set_high() {
+                    ble_led.set_low();
+                }
+                red_led.toggle();
+                grn_led.toggle();
+            }
+            80...84 => {
+                red_led.set_high();
+                grn_led.set_low();
+                ble_led.set_low();
+            }
+            85...100 => {
+                if grn_led.is_set_high() {
+                    grn_led.set_low();
+                }
+                if ble_led.is_set_high() {
+                    ble_led.set_low();
+                }
+                red_led.toggle();
+            }
+            _ => {
+                red_led.toggle();
+                grn_led.set_low();
+                ble_led.set_low();
+            }
+        }
     }
 }
 
