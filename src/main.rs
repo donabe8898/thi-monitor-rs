@@ -26,27 +26,31 @@ use ufmt_float::uFmt_f32;
 // 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 // 30: -- -- -- -- -- -- -- -- 38^C
 
-trait T {
+// 構造化
+// データ処理
+
+trait X {
     fn calc_thi(&self) -> u32 {
-        1
+        0
     }
-    fn set(&mut self, _input_tmp: f32, _input_hum: f32) {}
+    fn set(&mut self, _tmp: f32, _hum: f32) {}
 }
 struct FloatData {
     tmp: f32,
     hum: f32,
 }
 
-impl T for FloatData {
+impl X for FloatData {
     fn calc_thi(&self) -> u32 {
         (0.81 * self.tmp + 0.01 * self.hum * (0.99 * self.tmp - 14.3) + 46.3) as u32
     }
-    fn set(&mut self, input_tmp: f32, input_hum: f32) {
-        self.tmp = input_tmp;
-        self.hum = input_hum;
+    fn set(&mut self, tmp: f32, hum: f32) {
+        self.tmp = tmp;
+        self.hum = hum;
     }
 }
 
+// ターミナルへの表示
 #[arduino_hal::entry]
 fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
@@ -56,6 +60,9 @@ fn main() -> ! {
     let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 
     // 温湿度センサ用のi2cオブジェクト
+    // TODO: ここおそらく構造化できる
+    // https://github.com/kaaatsu32329/accelduino-rs/blob/main/src/bmx055.rs#L11
+    //
     let mut i2c = arduino_hal::I2c::new(
         dp.TWI,
         pins.a4.into_pull_up_input(),
@@ -106,6 +113,7 @@ fn main() -> ! {
             (tmp as f32 / 1048576.0) * 200.0 - 50.0,
             (hum as f32 / 1048576.0) * 100.0,
         );
+
         // 不快指数計算
         let thi = data.calc_thi();
 
@@ -216,11 +224,5 @@ fn main() -> ! {
     }
 }
 
-// fn flip(x: f32) -> u32 {
-//     let y: u32 = x.to_bits();
-//     return y ^ ((-((y >> 31) as i32) as u32 | 0x80000000_u32) as u32);
-// }
-// 695744
-// 375908
-
+// tips:
 // 2^20=1048576
