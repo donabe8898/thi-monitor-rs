@@ -1,6 +1,8 @@
 #![no_main]
 #![no_std]
 
+mod dht20;
+mod traits;
 use arduino_hal::prelude::*;
 use panic_halt as _;
 use ufmt::uwriteln;
@@ -29,26 +31,26 @@ use ufmt_float::uFmt_f32;
 // 構造化
 // データ処理
 
-trait X {
-    fn calc_thi(&self) -> u32 {
-        0
-    }
-    fn set(&mut self, _tmp: f32, _hum: f32) {}
-}
-struct FloatData {
-    tmp: f32,
-    hum: f32,
-}
+// trait X {
+//     fn calc_thi(&self) -> u32 {
+//         0
+//     }
+//     fn set(&mut self, _tmp: f32, _hum: f32) {}
+// }
+// struct FloatData {
+//     tmp: f32,
+//     hum: f32,
+// }
 
-impl X for FloatData {
-    fn calc_thi(&self) -> u32 {
-        (0.81 * self.tmp + 0.01 * self.hum * (0.99 * self.tmp - 14.3) + 46.3) as u32
-    }
-    fn set(&mut self, tmp: f32, hum: f32) {
-        self.tmp = tmp;
-        self.hum = hum;
-    }
-}
+// impl X for FloatData {
+//     fn calc_thi(&self) -> u32 {
+//         (0.81 * self.tmp + 0.01 * self.hum * (0.99 * self.tmp - 14.3) + 46.3) as u32
+//     }
+//     fn set(&mut self, tmp: f32, hum: f32) {
+//         self.tmp = tmp;
+//         self.hum = hum;
+//     }
+// }
 
 // ターミナルへの表示
 #[arduino_hal::entry]
@@ -90,7 +92,7 @@ fn main() -> ! {
     grn_led.set_low();
 
     // コンストラクト
-    let mut data: FloatData = FloatData { tmp: 0.0, hum: 0.0 };
+    let mut data: dht20::FloatData = dht20::FloatData { tmp: 0.0, hum: 0.0 };
 
     loop {
         // データ書き込み
@@ -140,6 +142,7 @@ fn main() -> ! {
         // 85~ 赤点滅
 
         match thi {
+            // ~50 青点滅
             0...49 => {
                 if red_led.is_set_high() {
                     red_led.set_low();
@@ -149,6 +152,7 @@ fn main() -> ! {
                 }
                 ble_led.toggle();
             }
+            // 50~55 青点灯
             50...54 => {
                 if red_led.is_set_high() {
                     red_led.set_low();
@@ -158,6 +162,7 @@ fn main() -> ! {
                 }
                 ble_led.set_high();
             }
+            // 55~60 水色
             55...59 => {
                 if red_led.is_set_high() {
                     red_led.set_low();
@@ -165,11 +170,13 @@ fn main() -> ! {
                 grn_led.set_high();
                 ble_led.set_high();
             }
+            // 60~65 白
             60...64 => {
                 red_led.set_high();
                 grn_led.set_high();
                 ble_led.set_high();
             }
+            // 65~70 緑
             65...69 => {
                 if red_led.is_set_high() {
                     red_led.set_low();
@@ -179,6 +186,7 @@ fn main() -> ! {
                 }
                 grn_led.set_high();
             }
+            // 70~75 黄色
             70...74 => {
                 if red_led.is_set_high() != grn_led.is_set_high() {
                     red_led.set_high();
@@ -190,6 +198,7 @@ fn main() -> ! {
                 red_led.set_high();
                 grn_led.set_high();
             }
+            // 75~80 黄色点滅
             75...79 => {
                 if red_led.is_set_high() != grn_led.is_set_high() {
                     red_led.set_high();
@@ -201,11 +210,13 @@ fn main() -> ! {
                 red_led.toggle();
                 grn_led.toggle();
             }
+            // 80~85　赤
             80...84 => {
                 red_led.set_high();
                 grn_led.set_low();
                 ble_led.set_low();
             }
+            // 85~ 赤点滅
             85...100 => {
                 if grn_led.is_set_high() {
                     grn_led.set_low();
@@ -215,10 +226,12 @@ fn main() -> ! {
                 }
                 red_led.toggle();
             }
+            // 例外はとりあえず赤点滅で
             _ => {
                 red_led.toggle();
                 grn_led.set_low();
                 ble_led.set_low();
+                uwriteln!(&mut serial, ">> Error").void_unwrap();
             }
         }
     }
