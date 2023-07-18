@@ -28,29 +28,6 @@ use ufmt_float::uFmt_f32;
 // 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 // 30: -- -- -- -- -- -- -- -- 38^C
 
-// 構造化
-// データ処理
-
-// trait X {
-//     fn calc_thi(&self) -> u32 {
-//         0
-//     }
-//     fn set(&mut self, _tmp: f32, _hum: f32) {}
-// }
-// struct FloatData {
-//     tmp: f32,
-//     hum: f32,
-// }
-
-// impl X for FloatData {
-//     fn calc_thi(&self) -> u32 {
-//         (0.81 * self.tmp + 0.01 * self.hum * (0.99 * self.tmp - 14.3) + 46.3) as u32
-//     }
-//     fn set(&mut self, tmp: f32, hum: f32) {
-//         self.tmp = tmp;
-//         self.hum = hum;
-//     }
-// }
 
 // ターミナルへの表示
 #[arduino_hal::entry]
