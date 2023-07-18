@@ -233,8 +233,8 @@ fn main() -> ! {
                 ble_led.set_low();
                 uwriteln!(&mut serial, ">> Error").void_unwrap();
             }
-        }
-    }
+        } // match thi{} END
+    } // loop {} END
 }
 
 // tips:
